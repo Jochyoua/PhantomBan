@@ -1,0 +1,18 @@
+name: PhantomBan
+version: '${version}'
+main: io.github.jochyoua.phantomban.PhantomBan
+api-version: '1.13'
+commands:
+  'phantomban':
+    aliases: ['pb', 'pban']
+    usage: '/phantomban [help/add/remove/reload] <player>'
+permissions:
+  phantomban.notify:
+    description: "Notify when a player joins while phantombanned"
+    default: op
+  phantomban.modify:
+    description: "Ability to add or remove players from the blacklist"
+    default: op
+  phantomban.bypass.*:
+    description: "While phantom-banned, allows you to bypass certain event restrictions."
+    default: false

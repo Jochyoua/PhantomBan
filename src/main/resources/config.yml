@@ -1,0 +1,66 @@
+# Because we love keeping lists of people we don't like.
+data:
+  blacklist: []
+
+settings:
+  # Oh, because banning wasn't enough.
+  blacklist-enabled: true
+  loyalty-rewards:
+    # How generous! Rewards for being banned.
+    enabled: true
+    seconds-until-unban: 1800
+    commands-to-run:
+      - "unban %1$s"
+      - "minecraft:tellraw %1$s [\"\u00A7aYou have completed your sentence and may re-connect to rejoin society! Thank you for your service.\"]"
+  effects:
+    # Because invisibility is obviously the best punishment.
+    invisibility: true
+    events:
+      org.bukkit.event.player.PlayerJoinEvent:
+        # In case they forget why they can't play.
+        enabled: true
+        message: "&cYou have joined the server while &bphantom-banned&c. Your ban will be reduced by playing."
+      org.bukkit.event.player.AsyncPlayerChatEvent:
+        # Because who needs to chat anyway?
+        enabled: true
+        message: "&cYou cannot chat while &bphantom-banned&c. &6%1$s"
+      org.bukkit.event.player.PlayerCommandPreprocessEvent:
+        # No commands for the naughty list.
+        enabled: true
+        message: "&cYou cannot use commands while &bphantom-banned&c. &6%1$s"
+      org.bukkit.event.player.PlayerDropItemEvent:
+        # Don't even think about dropping that item.
+        enabled: true
+        message: "&cYou cannot drop items while &bphantom-banned&c. &6%1$s"
+      org.bukkit.event.entity.EntityDamageByEntityEvent:
+        # As if they could actually hurt anything.
+        enabled: true
+        message: "&cYou cannot damage entities while &bphantom-banned&c. &6%1$s"
+      org.bukkit.event.player.PlayerInteractEvent:
+        # No interacting for you!
+        enabled: true
+        message: "&cYou cannot interact with items while &bphantom-banned&c. &6%1$s"
+
+messages:
+  # Because reading this will definitely help.
+  help:
+    - "&6/phantomban &ehelp &7- &aDisplay this message"
+    - "&6/phantomban &eadd <player> &7- &aAdd a player to the blacklist"
+    - "&6/phantomban &eremove <player> &7- &aRemove a player from the blacklist"
+    - "&6/phantomban &ereload &7- &aReloads the config and event listeners"
+  # Notify everyone about this poor soul.
+  notification: "&ePlayer &c%1$s &e has joined while &bphantom-banned&e."
+  # Hooray! The config reloaded!
+  reload-success: "&eSuccessfully reloaded config. Please check to see if event listeners successfully fire."
+  # Oh no, the reload failed. Shocking!
+  reload-failure: "&cFailed to successfully reload config. Plugin has been &c&ldisabled &c- Check console and restart."
+  # Congrats! You've removed someone from the blacklist.
+  remove-success: "&eSuccessfully removed data from blacklist."
+  # Couldn't remove it. Maybe it's already gone, genius.
+  remove-failure: "&cFailed to remove data from blacklist. &eMaybe it has already been removed?"
+  # Successfully added to the blacklist. Welcome to the club.
+  add-success: "&eSuccessfully added data to blacklist."
+  # Couldn't add it. Maybe it's already there, Sherlock.
+  add-failure: "&cFailed to add data to blacklist. &eMaybe it already exists?"
+  # Countdown to freedom.
+  time-until-unban: "You have %1$s seconds left until unbanned."
