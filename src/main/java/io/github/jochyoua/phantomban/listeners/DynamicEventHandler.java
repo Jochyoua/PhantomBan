@@ -42,7 +42,7 @@ public class DynamicEventHandler implements Listener {
                 String cleanPathName = eventClassPath.replace('#', '.');
                 Class<?> eventClass = Class.forName(cleanPathName);
 
-                EventExecutor eventExecutor = ((listener, event) -> handleEvent(event, eventClassPath));
+                EventExecutor eventExecutor = ((listener, event) -> handleDynamicEvent(event, eventClassPath));
                 pluginManager.registerEvent((Class<? extends Event>) eventClass, this, EventPriority.HIGHEST, eventExecutor, phantomBan);
                 dynamicEventList.add((Class<? extends Event>) eventClass);
 
@@ -53,7 +53,7 @@ public class DynamicEventHandler implements Listener {
         }
     }
 
-    private void handleEvent(Event event, String configKey) {
+    private void handleDynamicEvent(Event event, String configKey) {
         ConfigurationSection config = phantomBan.getConfig().getConfigurationSection("settings.effects.events." + configKey);
         if (config == null) {
             return;
