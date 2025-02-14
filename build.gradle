@@ -21,7 +21,6 @@ repositories {
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT"
     implementation group: 'net.jodah', name: 'expiringmap', version: '0.5.11'
-    implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
 }
 
 def targetJavaVersion = 8
@@ -57,7 +56,6 @@ shadowJar {
         include(dependency('net.jodah:expiringmap'))
     }
     relocate('net.jodah.expiringmap', 'io.github.jochyoua.shaded.expiringmap')
-    relocate('org.bstats.bstats-bukkit', 'io.github.jochyoua.shaded.bstats')
 }
 
 
