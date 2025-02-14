@@ -16,27 +16,27 @@ settings:
     # Because invisibility is obviously the best punishment.
     invisibility: true
     events:
-      org.bukkit.event.player.PlayerJoinEvent:
+      org#bukkit#event#player#PlayerJoinEvent:
         # In case they forget why they can't play.
         enabled: true
         message: "&cYou have joined the server while &bphantom-banned&c. Your ban will be reduced by playing."
-      org.bukkit.event.player.AsyncPlayerChatEvent:
+      org#bukkit#event#player#AsyncPlayerChatEvent:
         # Because who needs to chat anyway?
         enabled: true
         message: "&cYou cannot chat while &bphantom-banned&c. &6%1$s"
-      org.bukkit.event.player.PlayerCommandPreprocessEvent:
+      org#bukkit#event#player#PlayerCommandPreprocessEvent:
         # No commands for the naughty list.
         enabled: true
         message: "&cYou cannot use commands while &bphantom-banned&c. &6%1$s"
-      org.bukkit.event.player.PlayerDropItemEvent:
+      org#bukkit#event#player#PlayerDropItemEvent:
         # Don't even think about dropping that item.
         enabled: true
         message: "&cYou cannot drop items while &bphantom-banned&c. &6%1$s"
-      org.bukkit.event.entity.EntityDamageByEntityEvent:
+      org#bukkit#event#entity#EntityDamageByEntityEvent:
         # As if they could actually hurt anything.
         enabled: true
         message: "&cYou cannot damage entities while &bphantom-banned&c. &6%1$s"
-      org.bukkit.event.player.PlayerInteractEvent:
+      org#bukkit#event#player#PlayerInteractEvent:
         # No interacting for you!
         enabled: true
         message: "&cYou cannot interact with items while &bphantom-banned&c. &6%1$s"

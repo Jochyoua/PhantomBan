@@ -5,6 +5,7 @@ import io.github.jochyoua.phantomban.listeners.DynamicEventHandler;
 import io.github.jochyoua.phantomban.listeners.PlayerConnectionListener;
 import io.github.jochyoua.phantomban.permissions.DynamicPermissionHandler;
 import net.jodah.expiringmap.ExpiringMap;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -28,6 +29,8 @@ public final class PhantomBan extends JavaPlugin {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
 
+        new Metrics(this, 24779);
+
         dynamicEventHandler = new DynamicEventHandler(this);
         dynamicPermissionHandler = new DynamicPermissionHandler(this);
 
@@ -42,7 +45,6 @@ public final class PhantomBan extends JavaPlugin {
             pluginCommand.setExecutor(phantomBanCommand);
             pluginCommand.setTabCompleter(phantomBanCommand);
         }
-
 
         dynamicPermissionHandler.registerConfiguredPermissions();
 
@@ -66,7 +68,6 @@ public final class PhantomBan extends JavaPlugin {
                     unbanPlayer(player);
                 })
                 .build();
-
     }
 
     @Override
@@ -93,7 +94,6 @@ public final class PhantomBan extends JavaPlugin {
     public ExpiringMap<UUID, Long> getOnlineTimeTracker() {
         return onlineTimeTracker;
     }
-
 
     public boolean isBanned(String playerName, AsyncPlayerPreLoginEvent.Result result) {
         BanList banList = Bukkit.getBanList(BanList.Type.NAME);
