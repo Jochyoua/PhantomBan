@@ -9,7 +9,8 @@ import org.bukkit.permissions.PermissionDefault;
 import java.util.Set;
 
 public class DynamicPermissionHandler {
-    PhantomBan phantomBan;
+
+    private final PhantomBan phantomBan;
 
     public DynamicPermissionHandler(PhantomBan phantomBan) {
         this.phantomBan = phantomBan;
@@ -19,8 +20,11 @@ public class DynamicPermissionHandler {
         Set<Class<? extends Event>> dynamicEventList = phantomBan.getDynamicEventHandler().getDynamicEventList();
 
         dynamicEventList.forEach(eventClass -> {
-            Permission permission = new Permission("phantomban.bypass." + eventClass.getSimpleName(),
-                    "Allows user to bypass " + eventClass.getSimpleName() + " cancellation if phantom-banned", PermissionDefault.FALSE);
+            Permission permission = new Permission(
+                    "phantomban.bypass." + eventClass.getSimpleName(),
+                    "Allows user to bypass " + eventClass.getSimpleName() + " cancellation if phantom-banned",
+                    PermissionDefault.FALSE
+            );
             Bukkit.getPluginManager().addPermission(permission);
             phantomBan.getLogger().info("Registered permission " + permission.getName());
         });

@@ -16,8 +16,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class PhantomBanCommand implements CommandExecutor, TabCompleter {
+
     private final List<String> defaultArguments = Arrays.asList("help", "add", "remove", "reload");
-    final PhantomBan phantomBan;
+    private final PhantomBan phantomBan;
 
     public PhantomBanCommand(PhantomBan phantomBan) {
         this.phantomBan = phantomBan;
@@ -31,7 +32,7 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         }
 
         try {
-            switch (args[0]) {
+            switch (args[0].toLowerCase()) {
                 case "add":
                     handleAddArgs(commandSender, args[1]);
                     break;
@@ -101,7 +102,6 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         dynamicPermissionHandler.unregisterConfiguredPermissions();
         dynamicEventHandler.unRegisterConfiguredEvents();
 
-
         if (dynamicEventHandler.dynamicEventList.isEmpty()) {
             commandSender.sendMessage(phantomBan.formatMessage(
                     phantomBan.getConfig().getString("messages.reload-success")
@@ -110,13 +110,12 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
             dynamicPermissionHandler.registerConfiguredPermissions();
 
             phantomBan.getLogger().info(String.format("Finalized in %.1fms.", (System.nanoTime() - operationStartTime) / 1E6F));
-            return;
+        } else {
+            commandSender.sendMessage(phantomBan.formatMessage(
+                    phantomBan.getConfig().getString("messages.reload-failure")
+            ));
+            Bukkit.getPluginManager().disablePlugin(phantomBan);
         }
-
-        commandSender.sendMessage(phantomBan.formatMessage(
-                phantomBan.getConfig().getString("messages.reload-failure")
-        ));
-        Bukkit.getPluginManager().disablePlugin(phantomBan);
     }
 
     @Override

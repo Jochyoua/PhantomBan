@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class PlayerConnectionListener implements Listener {
+
     private final PhantomBan phantomBan;
 
     public PlayerConnectionListener(PhantomBan phantomBan) {
@@ -30,8 +31,7 @@ public class PlayerConnectionListener implements Listener {
             phantomBan.removePhantomBannedPlayer(asyncPlayerPreLoginEvent.getUniqueId());
         }
 
-        if (blacklist.contains(playerName)
-                && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
+        if (blacklist.contains(playerName) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
             return;
         }
 
@@ -57,7 +57,6 @@ public class PlayerConnectionListener implements Listener {
         if (phantomBan.getConfig().getBoolean("settings.effects.invisibility")) {
             this.hidePlayers();
         }
-
     }
 
     private void startTrackingOnlineTime(UUID uuid) {

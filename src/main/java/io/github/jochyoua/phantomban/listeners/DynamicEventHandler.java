@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DynamicEventHandler implements Listener {
+
     private final PhantomBan phantomBan;
     public final Set<Class<? extends Event>> dynamicEventList = new HashSet<>();
 
@@ -72,8 +73,7 @@ public class DynamicEventHandler implements Listener {
             String timeRemainingString = phantomBan.getConfig().getString("messages.time-until-unban");
             if (phantomBan.getOnlineTimeTracker().containsKey(player.getUniqueId())
                     && timeRemainingString != null && !timeRemainingString.isEmpty() && phantomBan.getConfig().getBoolean("settings.loyalty-rewards.enabled")) {
-                timeRemainingString = String.format(timeRemainingString, TimeUnit.MILLISECONDS.toSeconds(phantomBan.getOnlineTimeTracker().getExpectedExpiration(player.getUniqueId()))
-                );
+                timeRemainingString = String.format(timeRemainingString, TimeUnit.MILLISECONDS.toSeconds(phantomBan.getOnlineTimeTracker().getExpectedExpiration(player.getUniqueId())));
             } else {
                 timeRemainingString = "";
             }
