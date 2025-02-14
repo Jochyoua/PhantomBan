@@ -8,6 +8,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.List;
@@ -40,6 +41,25 @@ public class PlayerConnectionListener implements Listener {
             asyncPlayerPreLoginEvent.setLoginResult(AsyncPlayerPreLoginEvent.Result.ALLOWED);
             phantomBan.addPhantomBannedPlayer(asyncPlayerPreLoginEvent.getUniqueId());
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerLogin(PlayerLoginEvent playerLoginEvent) {
+        Player player = playerLoginEvent.getPlayer();
+        List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
+
+        if (blacklist.contains(player.getName()) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
+            return;
+        }
+
+        AsyncPlayerPreLoginEvent.Result result = playerLoginEvent.getResult() == PlayerLoginEvent.Result.KICK_BANNED ?
+                AsyncPlayerPreLoginEvent.Result.KICK_BANNED : AsyncPlayerPreLoginEvent.Result.ALLOWED;
+
+        if (phantomBan.isBanned(player.getName(), result)) {
+            playerLoginEvent.allow();
+            phantomBan.addPhantomBannedPlayer(player.getUniqueId());
+        }
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
