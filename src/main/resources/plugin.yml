@@ -10,6 +10,9 @@ permissions:
   phantomban.notify:
     description: "Notify when a player joins while phantombanned"
     default: op
+  phantomban.update:
+    description: "Notify an administrator when an update has been released"
+    default: OP
   phantomban.modify:
     description: "Ability to add or remove players from the blacklist"
     default: op
