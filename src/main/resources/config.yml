@@ -10,7 +10,7 @@ settings:
     enabled: true
     seconds-until-unban: 1800
     commands-to-run:
-      - "unban %1$s"
+      - "pardon %1$s"
       - "minecraft:tellraw %1$s [\"\u00A7aYou have completed your sentence and may re-connect to rejoin society! Thank you for your service.\"]"
   effects:
     # Because invisibility is obviously the best punishment.
