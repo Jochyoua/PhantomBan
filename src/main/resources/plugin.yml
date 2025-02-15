@@ -12,7 +12,7 @@ permissions:
     default: op
   phantomban.update:
     description: "Notify an administrator when an update has been released"
-    default: OP
+    default: op
   phantomban.modify:
     description: "Ability to add or remove players from the blacklist"
     default: op
