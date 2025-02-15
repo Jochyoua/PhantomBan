@@ -19,26 +19,30 @@ public class DynamicPermissionHandler {
     public void registerConfiguredPermissions() {
         Set<Class<? extends Event>> dynamicEventList = phantomBan.getDynamicEventHandler().getDynamicEventList();
 
-        dynamicEventList.forEach(eventClass -> {
-            Permission permission = new Permission(
-                    "phantomban.bypass." + eventClass.getSimpleName(),
-                    "Allows user to bypass " + eventClass.getSimpleName() + " cancellation if phantom-banned",
-                    PermissionDefault.FALSE
-            );
-            Bukkit.getPluginManager().addPermission(permission);
-            phantomBan.getLogger().info("Registered permission " + permission.getName());
-        });
+        dynamicEventList.forEach(this::registerPermission);
+    }
+
+    private void registerPermission(Class<? extends Event> eventClass) {
+        Permission permission = new Permission(
+                "phantomban.bypass." + eventClass.getSimpleName(),
+                "Allows user to bypass " + eventClass.getSimpleName() + " cancellation if phantom-banned",
+                PermissionDefault.FALSE
+        );
+        Bukkit.getPluginManager().addPermission(permission);
+        phantomBan.getLogger().info("Registered permission " + permission.getName());
     }
 
     public void unregisterConfiguredPermissions() {
         Set<Class<? extends Event>> dynamicEventList = phantomBan.getDynamicEventHandler().getDynamicEventList();
 
-        dynamicEventList.forEach(eventClass -> {
-            Permission permission = Bukkit.getPluginManager().getPermission("phantomban.bypass." + eventClass.getSimpleName());
-            if (permission != null) {
-                phantomBan.getLogger().info("Unregistered permission " + permission.getName());
-                Bukkit.getPluginManager().removePermission(permission);
-            }
-        });
+        dynamicEventList.forEach(this::unregisterPermission);
+    }
+
+    private void unregisterPermission(Class<? extends Event> eventClass) {
+        Permission permission = Bukkit.getPluginManager().getPermission("phantomban.bypass." + eventClass.getSimpleName());
+        if (permission != null) {
+            phantomBan.getLogger().info("Unregistered permission " + permission.getName());
+            Bukkit.getPluginManager().removePermission(permission);
+        }
     }
 }

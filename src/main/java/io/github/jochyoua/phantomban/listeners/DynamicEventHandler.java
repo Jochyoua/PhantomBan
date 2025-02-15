@@ -33,23 +33,27 @@ public class DynamicEventHandler implements Listener {
         Set<String> eventConfigKeys = phantomBan.getConfig().getConfigurationSection("settings.effects.events").getKeys(false);
 
         for (String eventClassPath : eventConfigKeys) {
-            ConfigurationSection config = phantomBan.getConfig().getConfigurationSection("settings.effects.events." + eventClassPath);
-            if (config == null || !config.getBoolean("enabled", false)) {
-                continue;
-            }
+            registerEvent(pluginManager, eventClassPath);
+        }
+    }
 
-            try {
-                String cleanPathName = eventClassPath.replace('#', '.');
-                Class<?> eventClass = Class.forName(cleanPathName);
+    private void registerEvent(PluginManager pluginManager, String eventClassPath) {
+        ConfigurationSection config = phantomBan.getConfig().getConfigurationSection("settings.effects.events." + eventClassPath);
+        if (config == null || !config.getBoolean("enabled", false)) {
+            return;
+        }
 
-                EventExecutor eventExecutor = ((listener, event) -> handleDynamicEvent(event, eventClassPath));
-                pluginManager.registerEvent((Class<? extends Event>) eventClass, this, EventPriority.HIGHEST, eventExecutor, phantomBan);
-                dynamicEventList.add((Class<? extends Event>) eventClass);
+        try {
+            String cleanPathName = eventClassPath.replace('#', '.');
+            Class<?> eventClass = Class.forName(cleanPathName);
 
-                phantomBan.getLogger().info("Successfully registered event: " + cleanPathName);
-            } catch (ClassNotFoundException e) {
-                phantomBan.getLogger().warning("Could not find event class for: " + eventClassPath);
-            }
+            EventExecutor eventExecutor = ((listener, event) -> handleDynamicEvent(event, eventClassPath));
+            pluginManager.registerEvent((Class<? extends Event>) eventClass, this, EventPriority.HIGHEST, eventExecutor, phantomBan);
+            dynamicEventList.add((Class<? extends Event>) eventClass);
+
+            phantomBan.getLogger().info("Successfully registered event: " + cleanPathName);
+        } catch (ClassNotFoundException e) {
+            phantomBan.getLogger().warning("Could not find event class for: " + eventClassPath);
         }
     }
 
@@ -58,65 +62,47 @@ public class DynamicEventHandler implements Listener {
         if (config == null) {
             return;
         }
-        String message = config.getString("message");
-        Player player = getPlayerFromEvent(event);
 
+        Player player = getPlayerFromEvent(event);
         if (player == null || !phantomBan.isPhantomBanned(player.getUniqueId())
                 || player.hasPermission("phantomban.bypass." + event.getClass().getSimpleName())) {
             return;
         }
+
         if (event instanceof Cancellable) {
             ((Cancellable) event).setCancelled(true);
         }
 
+        String message = config.getString("message");
         if (message != null && !message.isEmpty()) {
-            String timeRemainingString = phantomBan.getConfig().getString("messages.time-until-unban");
-            if (phantomBan.getOnlineTimeTracker().containsKey(player.getUniqueId())
-                    && timeRemainingString != null && !timeRemainingString.isEmpty() && phantomBan.getConfig().getBoolean("settings.loyalty-rewards.enabled")) {
-                timeRemainingString = String.format(timeRemainingString, TimeUnit.MILLISECONDS.toSeconds(phantomBan.getOnlineTimeTracker().getExpectedExpiration(player.getUniqueId())));
-            } else {
-                timeRemainingString = "";
-            }
-            player.sendMessage(String.format(phantomBan.formatMessage(message), timeRemainingString));
+            sendMessage(player, message);
         }
+    }
+
+    private void sendMessage(Player player, String message) {
+        String timeRemainingString = phantomBan.getConfig().getString("messages.time-until-unban");
+        if (phantomBan.getOnlineTimeTracker().containsKey(player.getUniqueId())
+                && timeRemainingString != null && !timeRemainingString.isEmpty()
+                && phantomBan.getConfig().getBoolean("settings.loyalty-rewards.enabled")) {
+            timeRemainingString = String.format(timeRemainingString, TimeUnit.MILLISECONDS.toSeconds(phantomBan.getOnlineTimeTracker().getExpectedExpiration(player.getUniqueId())));
+        } else {
+            timeRemainingString = "";
+        }
+
+        player.sendMessage(String.format(phantomBan.formatMessage(message), timeRemainingString));
     }
 
     private Player getPlayerFromEvent(Event event) {
         if (event instanceof PlayerEvent) {
             return ((PlayerEvent) event).getPlayer();
         } else if (event instanceof EntityDamageByEntityEvent) {
-            Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
-            if (damager == ((EntityDamageByEntityEvent) event).getEntity()) {
-                return null;
-            }
-            if (damager instanceof Player) {
-                return (Player) damager;
-            } else if (damager instanceof Projectile) {
-                ProjectileSource shooter = ((Projectile) damager).getShooter();
-                if (shooter instanceof Player) {
-                    return (Player) shooter;
-                }
-            }
+            return getPlayerFromEntityDamageByEntityEvent((EntityDamageByEntityEvent) event);
         } else if (event instanceof EntityExplodeEvent) {
-            Entity entity = ((EntityExplodeEvent) event).getEntity();
-            if (entity instanceof TNTPrimed) {
-                TNTPrimed tnt = (TNTPrimed) entity;
-                if (tnt.getSource() instanceof Player) {
-                    return (Player) tnt.getSource();
-                }
-            }
+            return getPlayerFromEntityExplodeEvent((EntityExplodeEvent) event);
         } else if (event instanceof EntityDamageEvent) {
-            EntityDamageEvent damageEvent = (EntityDamageEvent) event;
-            Entity damager = damageEvent.getEntity();
-            if (damager instanceof Player) {
-                return (Player) damager;
-            }
+            return getPlayerFromEntityDamageEvent((EntityDamageEvent) event);
         } else if (event instanceof EntityCombustByEntityEvent) {
-            EntityCombustByEntityEvent combustEvent = (EntityCombustByEntityEvent) event;
-            Entity combuster = combustEvent.getCombuster();
-            if (combuster instanceof Player) {
-                return (Player) combuster;
-            }
+            return getPlayerFromEntityCombustByEntityEvent((EntityCombustByEntityEvent) event);
         } else if (event instanceof BlockBreakEvent) {
             return ((BlockBreakEvent) event).getPlayer();
         } else if (event instanceof BlockPlaceEvent) {
@@ -129,6 +115,49 @@ public class DynamicEventHandler implements Listener {
         return null;
     }
 
+    private Player getPlayerFromEntityDamageByEntityEvent(EntityDamageByEntityEvent event) {
+        Entity damager = event.getDamager();
+        if (damager == event.getEntity()) {
+            return null;
+        }
+        if (damager instanceof Player) {
+            return (Player) damager;
+        } else if (damager instanceof Projectile) {
+            ProjectileSource shooter = ((Projectile) damager).getShooter();
+            if (shooter instanceof Player) {
+                return (Player) shooter;
+            }
+        }
+        return null;
+    }
+
+    private Player getPlayerFromEntityExplodeEvent(EntityExplodeEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof TNTPrimed) {
+            TNTPrimed tnt = (TNTPrimed) entity;
+            if (tnt.getSource() instanceof Player) {
+                return (Player) tnt.getSource();
+            }
+        }
+        return null;
+    }
+
+    private Player getPlayerFromEntityDamageEvent(EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Player) {
+            return (Player) entity;
+        }
+        return null;
+    }
+
+    private Player getPlayerFromEntityCombustByEntityEvent(EntityCombustByEntityEvent event) {
+        Entity combuster = event.getCombuster();
+        if (combuster instanceof Player) {
+            return (Player) combuster;
+        }
+        return null;
+    }
+
     public void unRegisterConfiguredEvents() {
         dynamicEventList.forEach(eventClass -> phantomBan.getLogger().info("Unregistered event " + eventClass.getName()));
         HandlerList.unregisterAll(this);
@@ -136,6 +165,6 @@ public class DynamicEventHandler implements Listener {
     }
 
     public Set<Class<? extends Event>> getDynamicEventList() {
-        return this.dynamicEventList;
+        return dynamicEventList;
     }
 }

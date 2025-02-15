@@ -53,43 +53,28 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void handleRemoveArgs(CommandSender commandSender, String target) {
-        List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
-
-        if (blacklist.remove(target)) {
-            commandSender.sendMessage(phantomBan.formatMessage(
-                    phantomBan.getConfig().getString("messages.remove-success")
-            ));
-            phantomBan.getConfig().set("data.blacklist", blacklist);
-            phantomBan.saveConfig();
-        } else {
-            commandSender.sendMessage(phantomBan.formatMessage(
-                    phantomBan.getConfig().getString("messages.remove-failure")
-            ));
-        }
-    }
-
     private void handleAddArgs(CommandSender commandSender, String target) {
         List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
 
         if (blacklist.contains(target)) {
-            commandSender.sendMessage(phantomBan.formatMessage(
-                    phantomBan.getConfig().getString("messages.add-failure")
-            ));
+            commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.add-failure")));
             return;
         }
         blacklist.add(target);
         phantomBan.getConfig().set("data.blacklist", blacklist);
         phantomBan.saveConfig();
-        commandSender.sendMessage(phantomBan.formatMessage(
-                phantomBan.getConfig().getString("messages.add-success")
-        ));
+        commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.add-success")));
     }
 
-    private void displayHelp(CommandSender commandSender) {
-        List<String> helpMessages = phantomBan.getConfig().getStringList("messages.help");
-        for (String message : helpMessages) {
-            commandSender.sendMessage(phantomBan.formatMessage(message));
+    private void handleRemoveArgs(CommandSender commandSender, String target) {
+        List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
+
+        if (blacklist.remove(target)) {
+            commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.remove-success")));
+            phantomBan.getConfig().set("data.blacklist", blacklist);
+            phantomBan.saveConfig();
+        } else {
+            commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.remove-failure")));
         }
     }
 
@@ -103,23 +88,26 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         dynamicEventHandler.unRegisterConfiguredEvents();
 
         if (dynamicEventHandler.dynamicEventList.isEmpty()) {
-            commandSender.sendMessage(phantomBan.formatMessage(
-                    phantomBan.getConfig().getString("messages.reload-success")
-            ));
+            commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.reload-success")));
             dynamicEventHandler.registerConfiguredEvents();
             dynamicPermissionHandler.registerConfiguredPermissions();
 
             phantomBan.getLogger().info(String.format("Finalized in %.1fms.", (System.nanoTime() - operationStartTime) / 1E6F));
         } else {
-            commandSender.sendMessage(phantomBan.formatMessage(
-                    phantomBan.getConfig().getString("messages.reload-failure")
-            ));
+            commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.reload-failure")));
             Bukkit.getPluginManager().disablePlugin(phantomBan);
         }
     }
 
+    private void displayHelp(CommandSender commandSender) {
+        List<String> helpMessages = phantomBan.getConfig().getStringList("messages.help");
+        for (String message : helpMessages) {
+            commandSender.sendMessage(phantomBan.formatMessage(message));
+        }
+    }
+
     @Override
-    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
+    public List<String> onTabComplete(CommandSender commandSender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
             StringUtil.copyPartialMatches(args[0], defaultArguments, completions);

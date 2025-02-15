@@ -24,50 +24,67 @@ public class PlayerConnectionListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onAsyncPlayerLogin(AsyncPlayerPreLoginEvent asyncPlayerPreLoginEvent) {
-        String playerName = asyncPlayerPreLoginEvent.getName();
+    public void onAsyncPlayerLogin(AsyncPlayerPreLoginEvent event) {
+        handleAsyncPlayerLogin(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerLogin(PlayerLoginEvent event) {
+        handlePlayerLogin(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        handlePlayerJoin(event);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        handlePlayerQuit(event);
+    }
+
+    private void handleAsyncPlayerLogin(AsyncPlayerPreLoginEvent event) {
+        String playerName = event.getName();
         List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
 
-        if (phantomBan.isPhantomBanned(asyncPlayerPreLoginEvent.getUniqueId())) {
-            phantomBan.removePhantomBannedPlayer(asyncPlayerPreLoginEvent.getUniqueId());
+        if (phantomBan.isPhantomBanned(event.getUniqueId())) {
+            phantomBan.removePhantomBannedPlayer(event.getUniqueId());
         }
 
         if (blacklist.contains(playerName) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
             return;
         }
 
-        if (phantomBan.isBanned(playerName, asyncPlayerPreLoginEvent.getLoginResult())) {
-            asyncPlayerPreLoginEvent.allow();
-            asyncPlayerPreLoginEvent.setLoginResult(AsyncPlayerPreLoginEvent.Result.ALLOWED);
-            phantomBan.addPhantomBannedPlayer(asyncPlayerPreLoginEvent.getUniqueId());
+        if (phantomBan.isBanned(playerName, event.getLoginResult())) {
+            event.allow();
+            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.ALLOWED);
+            phantomBan.addPhantomBannedPlayer(event.getUniqueId());
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlayerLogin(PlayerLoginEvent playerLoginEvent) {
-        Player player = playerLoginEvent.getPlayer();
+    private void handlePlayerLogin(PlayerLoginEvent event) {
+        Player player = event.getPlayer();
         List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
 
         if (blacklist.contains(player.getName()) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
             return;
         }
 
-        AsyncPlayerPreLoginEvent.Result result = playerLoginEvent.getResult() == PlayerLoginEvent.Result.KICK_BANNED ?
+        AsyncPlayerPreLoginEvent.Result result = event.getResult() == PlayerLoginEvent.Result.KICK_BANNED ?
                 AsyncPlayerPreLoginEvent.Result.KICK_BANNED : AsyncPlayerPreLoginEvent.Result.ALLOWED;
 
         if (phantomBan.isBanned(player.getName(), result)) {
-            playerLoginEvent.allow();
+            event.allow();
             phantomBan.addPhantomBannedPlayer(player.getUniqueId());
         }
-
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerJoin(PlayerJoinEvent playerJoinEvent) {
-        Player player = playerJoinEvent.getPlayer();
+    private void handlePlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
         if (phantomBan.isPhantomBanned(player.getUniqueId())) {
-            this.notifyPlayers(player);
+            notifyPlayers(player);
             startTrackingOnlineTime(player.getUniqueId());
+
             if (phantomBan.getConfig().isSet("data.expiringMap." + player.getUniqueId())) {
                 long expiration = phantomBan.getConfig().getLong("data.expiringMap." + player.getUniqueId());
                 phantomBan.getOnlineTimeTracker().setExpiration(player.getUniqueId(), expiration, TimeUnit.SECONDS);
@@ -75,21 +92,20 @@ public class PlayerConnectionListener implements Listener {
         }
 
         if (phantomBan.getConfig().getBoolean("settings.effects.invisibility")) {
-            this.hidePlayers();
+            hidePlayers();
+        }
+    }
+
+    private void handlePlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (phantomBan.isPhantomBanned(player.getUniqueId())) {
+            phantomBan.removePhantomBannedPlayer(player.getUniqueId());
+            stopTrackingOnlineTime(player.getUniqueId());
         }
     }
 
     private void startTrackingOnlineTime(UUID uuid) {
         phantomBan.getOnlineTimeTracker().put(uuid, System.currentTimeMillis());
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent playerQuitEvent) {
-        Player player = playerQuitEvent.getPlayer();
-        if (phantomBan.isPhantomBanned(player.getUniqueId())) {
-            phantomBan.removePhantomBannedPlayer(player.getUniqueId());
-            stopTrackingOnlineTime(player.getUniqueId());
-        }
     }
 
     private void stopTrackingOnlineTime(UUID uuid) {
@@ -118,6 +134,7 @@ public class PlayerConnectionListener implements Listener {
             if (onlinePlayer == null) {
                 continue;
             }
+
             if (onlinePlayer.hasPermission("phantomban.notify")) {
                 String message = String.format(phantomBan.getConfig().getString("messages.notification"), player.getName());
                 onlinePlayer.sendMessage(phantomBan.formatMessage(message));
