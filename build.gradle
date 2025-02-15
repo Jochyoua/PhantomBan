@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'io.github.jochyoua'
-version = '1.0.1'
+version = '1.0.2'
 
 repositories {
     mavenCentral()
@@ -16,11 +16,16 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven {
+        name = "jeff-media"
+        url = "https://repo.jeff-media.com/public/"
+    }
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT"
     implementation group: 'net.jodah', name: 'expiringmap', version: '0.5.11'
+    implementation "com.jeff_media:SpigotUpdateChecker:3.0.4"
 }
 
 def targetJavaVersion = 8
@@ -54,8 +59,10 @@ shadowJar {
     archiveClassifier.set('')
     dependencies {
         include(dependency('net.jodah:expiringmap'))
+        include(dependency("com.jeff_media:"))
     }
-    relocate('net.jodah.expiringmap', 'io.github.jochyoua.shaded.expiringmap')
+    relocate('net.jodah.expiringmap', 'io.github.jochyoua.phantomban.shaded.expiringmap')
+    relocate("com.jeff_media", "io.github.jochyoua.phantomban.shaded.jeff_media")
 }
 
 
