@@ -1,5 +1,7 @@
 package io.github.jochyoua.phantomban;
 
+import com.jeff_media.updatechecker.UpdateCheckSource;
+import com.jeff_media.updatechecker.UpdateChecker;
 import io.github.jochyoua.phantomban.commands.PhantomBanCommand;
 import io.github.jochyoua.phantomban.listeners.DynamicEventHandler;
 import io.github.jochyoua.phantomban.listeners.PlayerConnectionListener;
@@ -19,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 
 public final class PhantomBan extends JavaPlugin {
 
+    private static final String SPIGOT_RESOURCE_ID = "122591";
+    private static final int BSTATS_METRIC_ID = 24779;
     private final Set<UUID> phantomBannedPlayers = new HashSet<>();
     private DynamicEventHandler dynamicEventHandler;
     private DynamicPermissionHandler dynamicPermissionHandler;
@@ -26,58 +30,82 @@ public final class PhantomBan extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        setupConfig();
+        setupMetrics();
+        setupHandlers();
+        registerEvents();
+        registerCommands();
+        buildOnlineTimeTracker();
+        dynamicPermissionHandler.registerConfiguredPermissions();
+        this.checkForUpdates();
+    }
+
+    private void setupConfig() {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
+    }
 
-        new Metrics(this, 24779);
+    private void setupMetrics() {
+        new Metrics(this, BSTATS_METRIC_ID);
+    }
 
+    private void setupHandlers() {
         dynamicEventHandler = new DynamicEventHandler(this);
         dynamicPermissionHandler = new DynamicPermissionHandler(this);
+    }
 
+    private void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerConnectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(dynamicEventHandler, this);
-
         dynamicEventHandler.registerConfiguredEvents();
+    }
 
+    private void registerCommands() {
         PluginCommand pluginCommand = getCommand("phantomban");
         if (pluginCommand != null) {
             PhantomBanCommand phantomBanCommand = new PhantomBanCommand(this);
             pluginCommand.setExecutor(phantomBanCommand);
             pluginCommand.setTabCompleter(phantomBanCommand);
         }
+    }
 
-        dynamicPermissionHandler.registerConfiguredPermissions();
-
+    private void buildOnlineTimeTracker() {
         onlineTimeTracker = ExpiringMap.builder()
                 .variableExpiration()
                 .expiration(getConfig().getLong("settings.loyalty-rewards.seconds-until-unban", 1800), TimeUnit.SECONDS)
-                .expirationListener((UUID uuid, Long joinTime) -> {
-                    if (!getConfig().getBoolean("settings.loyalty-rewards.enabled")) {
-                        return;
-                    }
-                    if (!isPhantomBanned(uuid)) {
-                        return;
-                    }
-                    Player player = Bukkit.getPlayer(uuid);
-                    if (player == null) {
-                        return;
-                    }
-                    getConfig().set("data.expiringMap." + player.getUniqueId(), null);
-                    saveConfig();
-
-                    unbanPlayer(player);
-                })
+                .expirationListener(this::handleExpiration)
                 .build();
+    }
+
+    private void handleExpiration(UUID uuid, Long joinTime) {
+        if (!getConfig().getBoolean("settings.loyalty-rewards.enabled") || !isPhantomBanned(uuid)) {
+            return;
+        }
+
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            return;
+        }
+
+        getConfig().set("data.expiringMap." + player.getUniqueId(), null);
+        saveConfig();
+        unbanPlayer(player);
+    }
+
+    public void checkForUpdates() {
+        new UpdateChecker(this, UpdateCheckSource.SPIGOT, SPIGOT_RESOURCE_ID)
+                .checkEveryXHours(24)
+                .setNotifyOpsOnJoin(true)
+                .setNotifyByPermissionOnJoin("phantomban.update")
+                .checkNow();
     }
 
     @Override
     public void onDisable() {
-        this.phantomBannedPlayers.clear();
-
+        phantomBannedPlayers.clear();
         if (dynamicPermissionHandler != null) {
             dynamicPermissionHandler.unregisterConfiguredPermissions();
         }
-
         if (dynamicEventHandler != null) {
             dynamicEventHandler.unRegisterConfiguredEvents();
         }
@@ -97,7 +125,6 @@ public final class PhantomBan extends JavaPlugin {
 
     public boolean isBanned(String playerName, AsyncPlayerPreLoginEvent.Result result) {
         BanList banList = Bukkit.getBanList(BanList.Type.NAME);
-
         return banList.isBanned(playerName) || result.equals(AsyncPlayerPreLoginEvent.Result.KICK_BANNED);
     }
 
@@ -106,7 +133,7 @@ public final class PhantomBan extends JavaPlugin {
     }
 
     public Set<UUID> getPhantomBannedPlayers() {
-        return this.phantomBannedPlayers;
+        return phantomBannedPlayers;
     }
 
     public void addPhantomBannedPlayer(UUID uuid) {
@@ -122,10 +149,8 @@ public final class PhantomBan extends JavaPlugin {
     }
 
     public void unbanPlayer(Player player) {
-        this.getLogger().info("Player " + player.getName() + " has spent enough time online to be unbanned. Running commands.");
-
+        getLogger().info("Player " + player.getName() + " has spent enough time online to be unbanned. Running commands.");
         removePhantomBannedPlayer(player.getUniqueId());
-
         Bukkit.getScheduler().runTask(this, () -> executeBatchCommands(player));
     }
 
