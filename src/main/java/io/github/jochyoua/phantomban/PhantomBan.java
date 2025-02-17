@@ -156,6 +156,10 @@ public final class PhantomBan extends JavaPlugin {
         removePhantomBannedPlayer(player.getUniqueId());
         Bukkit.getScheduler().runTask(this, () -> executeBatchCommands(player));
         DebugLogger.logMessage(Level.INFO, "Player " + player.getName() + " has spent enough time online to be unbanned. Running commands.");
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.showPlayer(this, player);
+        }
     }
 
     private void executeBatchCommands(Player player) {
