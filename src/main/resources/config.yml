@@ -1,7 +1,7 @@
 # Because we love keeping lists of people we don't like.
 data:
   blacklist: []
-  expiration: []
+  expiringMap: []
   config-version: '1.0.2'
 
 settings:
