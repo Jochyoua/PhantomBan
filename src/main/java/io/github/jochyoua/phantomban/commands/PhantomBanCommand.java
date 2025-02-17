@@ -1,6 +1,7 @@
 package io.github.jochyoua.phantomban.commands;
 
 import io.github.jochyoua.phantomban.PhantomBan;
+import io.github.jochyoua.phantomban.debug.DebugLogger;
 import io.github.jochyoua.phantomban.listeners.DynamicEventHandler;
 import io.github.jochyoua.phantomban.permissions.DynamicPermissionHandler;
 import org.bukkit.Bukkit;
@@ -10,14 +11,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.util.StringUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 public class PhantomBanCommand implements CommandExecutor, TabCompleter {
 
-    private final List<String> defaultArguments = Arrays.asList("help", "add", "remove", "reload");
+    private final List<String> defaultArguments = Arrays.asList("help", "add", "remove", "reload", "debug");
     private final PhantomBan phantomBan;
 
     public PhantomBanCommand(PhantomBan phantomBan) {
@@ -42,6 +45,9 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
                 case "reload":
                     handleReload(commandSender);
                     break;
+                case "debug":
+                    handleDebug(commandSender);
+                    break;
                 case "help":
                 default:
                     displayHelp(commandSender);
@@ -51,6 +57,26 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
             return false;
         }
         return true;
+    }
+
+    private void handleDebug(CommandSender commandSender) {
+        commandSender.sendMessage(phantomBan.formatMessage(String.format("PhantomBan v%s by Jochyoua", phantomBan.getDescription().getVersion())));
+        commandSender.sendMessage(phantomBan.formatMessage(String.format("Running on %s %s", System.getProperty("os.name"), System.getProperty("os.version"))));
+        commandSender.sendMessage(phantomBan.formatMessage(String.format("Java %s by %s", System.getProperty("java.version"), System.getProperty("java.vendor"))));
+        commandSender.sendMessage(phantomBan.formatMessage(String.format("Server version %s by %s", Bukkit.getVersion(), Bukkit.getBukkitVersion())));
+        commandSender.sendMessage(phantomBan.formatMessage(String.format("Loaded %d events", phantomBan.getDynamicEventHandler().dynamicEventList.size())));
+
+        File debugDir = new File(phantomBan.getDataFolder(), "debug");
+        if(!debugDir.mkdirs()){
+            commandSender.sendMessage(phantomBan.formatMessage("Failed to save debug logs from memory "));
+            return;
+        }
+        DebugLogger.saveToFile(
+                new File(debugDir, "debug/INFO.log").getPath(),
+                new File(debugDir, "debug/SEVERE.log").getPath(),
+                new File(debugDir, "debug/WARNING.log").getPath()
+        );
+        commandSender.sendMessage(phantomBan.formatMessage("Debug logs have been saved from memory to file"));
     }
 
     private void handleAddArgs(CommandSender commandSender, String target) {
@@ -64,6 +90,7 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         phantomBan.getConfig().set("data.blacklist", blacklist);
         phantomBan.saveConfig();
         commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.add-success")));
+        DebugLogger.logMessage(Level.INFO, String.format("Added %s to blacklist", target));
     }
 
     private void handleRemoveArgs(CommandSender commandSender, String target) {
@@ -73,6 +100,7 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
             commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.remove-success")));
             phantomBan.getConfig().set("data.blacklist", blacklist);
             phantomBan.saveConfig();
+            DebugLogger.logMessage(Level.INFO, String.format("Removed %s from blacklist", target));
         } else {
             commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.remove-failure")));
         }
@@ -96,6 +124,7 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         } else {
             commandSender.sendMessage(phantomBan.formatMessage(phantomBan.getConfig().getString("messages.reload-failure")));
             Bukkit.getPluginManager().disablePlugin(phantomBan);
+            DebugLogger.logMessage(Level.SEVERE, "Failed to reload config. Event list did not reset properly and plugin has been disabled.");
         }
     }
 

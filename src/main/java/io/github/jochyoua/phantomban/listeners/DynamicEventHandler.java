@@ -1,6 +1,7 @@
 package io.github.jochyoua.phantomban.listeners;
 
 import io.github.jochyoua.phantomban.PhantomBan;
+import io.github.jochyoua.phantomban.debug.DebugLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
@@ -18,6 +19,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class DynamicEventHandler implements Listener {
 
@@ -40,6 +42,7 @@ public class DynamicEventHandler implements Listener {
     private void registerEvent(PluginManager pluginManager, String eventClassPath) {
         ConfigurationSection config = phantomBan.getConfig().getConfigurationSection("settings.effects.events." + eventClassPath);
         if (config == null || !config.getBoolean("enabled", false)) {
+            DebugLogger.logMessage(Level.INFO, "Config is null or event is disabled for " + eventClassPath);
             return;
         }
 
@@ -53,23 +56,36 @@ public class DynamicEventHandler implements Listener {
 
             phantomBan.getLogger().info("Successfully registered event: " + cleanPathName);
         } catch (ClassNotFoundException e) {
-            phantomBan.getLogger().warning("Could not find event class for: " + eventClassPath);
+            DebugLogger.logMessage(Level.WARNING, "Could not find event class for: " + eventClassPath);
         }
     }
 
     private void handleDynamicEvent(Event event, String configKey) {
         ConfigurationSection config = phantomBan.getConfig().getConfigurationSection("settings.effects.events." + configKey);
         if (config == null) {
+            DebugLogger.logMessage(Level.WARNING, "ConfigSection is null for this event:" + configKey);
             return;
         }
 
         Player player = getPlayerFromEvent(event);
-        if (player == null || !phantomBan.isPhantomBanned(player.getUniqueId())
-                || player.hasPermission("phantomban.bypass." + event.getClass().getSimpleName())) {
+        if (player == null) {
+            DebugLogger.logMessage(Level.INFO, "Player is null for this event entry: " + configKey);
             return;
         }
 
+        if (!phantomBan.isPhantomBanned(player.getUniqueId())) {
+            DebugLogger.logMessage(Level.INFO, "Player is not phantom banned for this event entry: " + configKey);
+            return;
+        }
+
+        if (player.hasPermission("phantomban.bypass." + event.getClass().getSimpleName())) {
+            DebugLogger.logMessage(Level.INFO, "Player has bypass permission for this event entry: " + configKey);
+            return;
+        }
+
+
         if (event instanceof Cancellable) {
+            DebugLogger.logMessage(Level.INFO, "Event was cancelled for this event entry: " + configKey);
             ((Cancellable) event).setCancelled(true);
         }
 

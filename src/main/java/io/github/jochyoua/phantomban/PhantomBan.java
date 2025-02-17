@@ -3,6 +3,7 @@ package io.github.jochyoua.phantomban;
 import com.jeff_media.updatechecker.UpdateCheckSource;
 import com.jeff_media.updatechecker.UpdateChecker;
 import io.github.jochyoua.phantomban.commands.PhantomBanCommand;
+import io.github.jochyoua.phantomban.debug.DebugLogger;
 import io.github.jochyoua.phantomban.listeners.DynamicEventHandler;
 import io.github.jochyoua.phantomban.listeners.PlayerConnectionListener;
 import io.github.jochyoua.phantomban.permissions.DynamicPermissionHandler;
@@ -18,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public final class PhantomBan extends JavaPlugin {
 
@@ -41,6 +43,7 @@ public final class PhantomBan extends JavaPlugin {
     }
 
     private void setupConfig() {
+        this.getConfig().set("data.config-version", this.getDescription().getVersion());
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
     }
@@ -152,11 +155,13 @@ public final class PhantomBan extends JavaPlugin {
         getLogger().info("Player " + player.getName() + " has spent enough time online to be unbanned. Running commands.");
         removePhantomBannedPlayer(player.getUniqueId());
         Bukkit.getScheduler().runTask(this, () -> executeBatchCommands(player));
+        DebugLogger.logMessage(Level.INFO, "Player " + player.getName() + " has spent enough time online to be unbanned. Running commands.");
     }
 
     private void executeBatchCommands(Player player) {
         for (String commandToExecute : getConfig().getStringList("settings.loyalty-rewards.commands-to-run")) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.format(commandToExecute, player.getName()));
+            DebugLogger.logMessage(Level.INFO, String.format("Executing command %s for %s", player.getName(), commandToExecute));
         }
     }
 }

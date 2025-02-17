@@ -1,6 +1,8 @@
 # Because we love keeping lists of people we don't like.
 data:
   blacklist: []
+  expiration: []
+  config-version: '1.0.2'
 
 settings:
   # Oh, because banning wasn't enough.
@@ -48,6 +50,7 @@ messages:
     - "&6/phantomban &eadd <player> &7- &aAdd a player to the blacklist"
     - "&6/phantomban &eremove <player> &7- &aRemove a player from the blacklist"
     - "&6/phantomban &ereload &7- &aReloads the config and event listeners"
+    - "&6/phantomban &edebug &7- &aGives debugging information & saves logs to file"
   # Notify everyone about this poor soul.
   notification: "&ePlayer &c%1$s &e has joined while &bphantom-banned&e."
   # Hooray! The config reloaded!

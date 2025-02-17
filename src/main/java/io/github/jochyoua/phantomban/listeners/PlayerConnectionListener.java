@@ -1,6 +1,7 @@
 package io.github.jochyoua.phantomban.listeners;
 
 import io.github.jochyoua.phantomban.PhantomBan;
+import io.github.jochyoua.phantomban.debug.DebugLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,6 +15,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class PlayerConnectionListener implements Listener {
 
@@ -52,6 +54,7 @@ public class PlayerConnectionListener implements Listener {
         }
 
         if (blacklist.contains(playerName) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
+            DebugLogger.logMessage(Level.INFO, "Player joined while blacklisted, denying connection: " + playerName);
             return;
         }
 
@@ -59,6 +62,9 @@ public class PlayerConnectionListener implements Listener {
             event.allow();
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.ALLOWED);
             phantomBan.addPhantomBannedPlayer(event.getUniqueId());
+            DebugLogger.logMessage(Level.INFO, "Player joined while banned, allowing connection: " + playerName);
+        }else {
+            DebugLogger.logMessage(Level.INFO, "Player joined while not banned: " + playerName);
         }
     }
 
@@ -67,6 +73,7 @@ public class PlayerConnectionListener implements Listener {
         List<String> blacklist = phantomBan.getConfig().getStringList("data.blacklist");
 
         if (blacklist.contains(player.getName()) && phantomBan.getConfig().getBoolean("settings.blacklist-enabled")) {
+            DebugLogger.logMessage(Level.INFO, "Player joined while blacklisted, denying connection: " + player.getName());
             return;
         }
 
@@ -76,6 +83,9 @@ public class PlayerConnectionListener implements Listener {
         if (phantomBan.isBanned(player.getName(), result)) {
             event.allow();
             phantomBan.addPhantomBannedPlayer(player.getUniqueId());
+            DebugLogger.logMessage(Level.INFO, "Player joined while banned, allowing connection: " + player.getName());
+        }else {
+            DebugLogger.logMessage(Level.INFO, "Player joined while not banned: " + player.getName());
         }
     }
 
@@ -88,6 +98,7 @@ public class PlayerConnectionListener implements Listener {
             if (phantomBan.getConfig().isSet("data.expiringMap." + player.getUniqueId())) {
                 long expiration = phantomBan.getConfig().getLong("data.expiringMap." + player.getUniqueId());
                 phantomBan.getOnlineTimeTracker().setExpiration(player.getUniqueId(), expiration, TimeUnit.SECONDS);
+                DebugLogger.logMessage(Level.INFO, "Player joined while having pre-existing expiration: " + expiration);
             }
         }
 
