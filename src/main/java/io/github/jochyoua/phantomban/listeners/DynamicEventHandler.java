@@ -105,7 +105,7 @@ public class DynamicEventHandler implements Listener {
             timeRemainingString = "";
         }
 
-        player.sendMessage(String.format(phantomBan.formatMessage(message), timeRemainingString));
+        player.sendMessage(phantomBan.formatMessage(String.format(message, timeRemainingString)));
     }
 
     private Player getPlayerFromEvent(Event event) {
