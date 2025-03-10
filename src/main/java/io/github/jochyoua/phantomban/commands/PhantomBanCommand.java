@@ -72,9 +72,9 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
             return;
         }
         DebugLogger.saveToFile(
-                new File(debugDir, "debug/INFO.log").getPath(),
-                new File(debugDir, "debug/SEVERE.log").getPath(),
-                new File(debugDir, "debug/WARNING.log").getPath()
+                new File(debugDir, "INFO.log").getPath(),
+                new File(debugDir, "SEVERE.log").getPath(),
+                new File(debugDir, "WARNING.log").getPath()
         );
         commandSender.sendMessage(phantomBan.formatMessage("Debug logs have been saved from memory to file"));
     }
