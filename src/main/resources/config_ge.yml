@@ -1,0 +1,67 @@
+# Weil wir es lieben, Listen von Personen zu führen, die wir nicht mögen.
+data:
+  blacklist: []
+  expiration: []
+  config-version: '1.0.3'
+
+settings:
+  # Oh, weil das Bannen nicht genug war.
+  blacklist-enabled: true
+  loyalty-rewards:
+    # Wie großzügig! Belohnungen fürs Gebanntsein.
+    enabled: true
+    seconds-until-unban: 1800
+    commands-to-run:
+      - "unban %1$s"
+      - "minecraft:tellraw %1$s [\"\u00A7aDu hast deine Strafe abgesessen und kannst dich wieder verbinden, um der Gesellschaft wieder beizutreten! Vielen Dank für deinen Einsatz.\"]"
+  effects:
+    # Weil Unsichtbarkeit offensichtlich die beste Bestrafung ist.
+    invisibility: true
+    events:
+      org#bukkit#event#player#PlayerJoinEvent:
+        # Falls sie vergessen, warum sie nicht spielen können.
+        enabled: true
+        message: "&cDu hast den Server betreten während du &bphantom-banned&c bist. Deine Sperre wird durch Spielen reduziert."
+      org#bukkit#event#player#AsyncPlayerChatEvent:
+        # Wer braucht schon chatten?
+        enabled: true
+        message: "&cDu kannst nicht chatten, während du &bphantom-banned&c bist. &6%1$s"
+      org#bukkit#event#player#PlayerCommandPreprocessEvent:
+        # Keine Befehle für die Unartigen.
+        enabled: true
+        message: "&cDu kannst keine Befehle ausführen, während du &bphantom-banned&c bist. &6%1$s"
+      org#bukkit#event#player#PlayerDropItemEvent:
+        # Denk gar nicht erst daran, etwas fallen zu lassen.
+        enabled: true
+        message: "&cDu kannst keine Gegenstände fallen lassen, während du &bphantom-banned&c bist. &6%1$s"
+      org#bukkit#event#entity#EntityDamageByEntityEvent:
+        # Als ob sie irgendetwas verletzen könnten.
+        enabled: true
+        message: "&cDu kannst keine Entitäten verletzt, während du &bphantom-banned&c bist. &6%1$s"
+      org#bukkit#event#player#PlayerInteractEvent:
+        # Keine Interaktionen für dich!
+        enabled: true
+        message: "&cDu kannst nicht interagieren, während du &bphantom-banned&c bist. &6%1$s"
+messages:
+  # Weil das Lesen davon definitiv hilft.
+  help:
+    - "&6/phantomban &ehelp &7- &aZeigt diese Nachricht an"
+    - "&6/phantomban &eadd <Spieler> &7- &aFüge einen Spieler zur schwarzen Liste hinzu"
+    - "&6/phantomban &eremove <Spieler> &7- &aEntferne einen Spieler von der schwarzen Liste"
+    - "&6/phantomban &ereload &7- &aLädt die Konfiguration und die Ereignislistener neu"
+  # Benachrichtige alle über diese arme Seele.
+  notification: "&eSpieler &c%1$s &e hat den Server betreten, während er &bphantom-banned&e ist."
+  # Hurra! Die Konfiguration wurde neu geladen!
+  reload-success: "&eKonfiguration erfolgreich neu geladen. Bitte überprüfen Sie, ob Ereignislistener erfolgreich ausgelöst werden."
+  # Oh nein, das Neuladen ist fehlgeschlagen. Schockierend!
+  reload-failure: "&cFehler beim Neuladen der Konfiguration. Plugin wurde &c&ldeaktiviert &c- Überprüfen Sie die Konsole und starten Sie neu."
+  # Glückwunsch! Du hast jemanden von der schwarzen Liste entfernt.
+  remove-success: "&eDaten erfolgreich von der schwarzen Liste entfernt."
+  # Konnte es nicht entfernen. Vielleicht ist es schon weg, Genie.
+  remove-failure: "&cFehler beim Entfernen der Daten von der schwarzen Liste. &eVielleicht wurde es bereits entfernt?"
+  # Erfolgreich zur schwarzen Liste hinzugefügt. Willkommen im Club.
+  add-success: "&eDaten erfolgreich zur schwarzen Liste hinzugefügt."
+  # Konnte nicht hinzugefügt werden. Vielleicht ist es schon da, Sherlock.
+  add-failure: "&cDaten konnten nicht zur schwarzen Liste hinzugefügt werden. &eVielleicht existiert es bereits?"
+  # Countdown bis zur Freiheit.
+  time-until-unban: "Du hast noch %1$s Sekunden bis zur Entbannung."
