@@ -67,7 +67,7 @@ public class PhantomBanCommand implements CommandExecutor, TabCompleter {
         commandSender.sendMessage(phantomBan.formatMessage(String.format("Loaded %d events", phantomBan.getDynamicEventHandler().dynamicEventList.size())));
 
         File debugDir = new File(phantomBan.getDataFolder(), "debug");
-        if(!debugDir.mkdirs()){
+        if(!debugDir.exists() && !debugDir.mkdirs()){
             commandSender.sendMessage(phantomBan.formatMessage("Failed to save debug logs from memory"));
             return;
         }
